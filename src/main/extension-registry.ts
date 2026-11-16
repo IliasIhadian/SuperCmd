@@ -1445,6 +1445,8 @@ async function downloadAndExtractTarball(
             reject(err);
           }
         });
+      }).on('timeout', function (this: import('http').ClientRequest) {
+        this.destroy(new Error('Extension download timed out.'));
       }).on('error', reject);
     };
 
