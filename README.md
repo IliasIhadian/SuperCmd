@@ -148,7 +148,7 @@ SuperCmd includes a built-in auto-updater backed by GitHub Releases. You can che
 
 ### Raycast Backup Import
 
-SuperCmd can import encrypted Raycast `.rayconfig` backups from the General settings tab.
+SuperCmd can import encrypted Raycast `.rayconfig` backups from Settings → Advanced → Import Raycast Backup. Both legacy exports and Raycast 2.x `RAYCFG3` exports are supported. The v3 reader authenticates the AES-256-GCM payload using a scrypt-derived key before decompressing it and maps the new category structure into the existing import pipeline.
 
 It currently imports:
 - Raycast settings that map cleanly to SuperCmd
@@ -164,7 +164,7 @@ It currently imports:
 - disabled extension commands
 
 It intentionally skips or only partially maps:
-- AI chats
+- AI chats (text messages are imported; tool calls and attachments are not)
 - clipboard history
 - MCP server config
 - Raycast aliases, where the backup does not expose a clean first-class field

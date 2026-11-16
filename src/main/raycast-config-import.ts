@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as zlib from 'zlib';
+import { decodeRaycastBackupV3, isRaycastBackupV3 } from './raycast-backup-v3';
 import { getAiChatSnapshot, mergeAiChatSnapshot } from './ai-chat-store';
 import { getAvailableCommands, invalidateCache, type CommandInfo } from './commands';
 import { getExtensionPreferences, setExtensionPreferences } from './extension-preferences-store';
@@ -332,7 +333,7 @@ function promptForPassword(message: string): string | null {
       ],
       { encoding: 'utf8' }
     );
-    const password = String(response || '').trim();
+    const password = String(response || '').replace(/\r?\n$/, '');
     return password || null;
   } catch (error: any) {
     const messageText = `${String(error?.message || '')}\n${String(error?.stderr || '')}`.toLowerCase();
@@ -399,6 +400,7 @@ function decryptRaycastBuffer(raw: Buffer, password: string): Buffer {
 
 function loadRaycastBackupFromFile(filePath: string, password: string | null): RaycastBackup {
   const raw = fs.readFileSync(filePath);
+  if (isRaycastBackupV3(raw)) return decodeRaycastBackupV3(raw, password) as RaycastBackup;
   const plain = parseMaybePlainJson(raw);
   if (plain) return plain;
   if (!password) {
@@ -1472,7 +1474,7 @@ async function selectAndLoadRaycastBackup(parentWindow?: BrowserWindow): Promise
   let backup: RaycastBackup | null = null;
   let password: string | null = null;
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt <= 3; attempt += 1) {
     try {
       backup = loadRaycastBackupFromFile(filePath, password);
       break;
@@ -1482,6 +1484,7 @@ async function selectAndLoadRaycastBackup(parentWindow?: BrowserWindow): Promise
         message.includes('password is not valid') ||
         message.includes('password is required')
       ) {
+        if (attempt === 3) throw error;
         const promptedPassword = promptForPassword(attempt === 0 ? PASSWORD_PROMPT_MESSAGE : PASSWORD_RETRY_MESSAGE);
         if (!promptedPassword) {
           return { canceled: true, filePath };
