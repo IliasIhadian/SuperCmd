@@ -441,7 +441,7 @@ function decodeRaycastHotkey(value: unknown): string | null {
   const modifiers: string[] = [];
   for (const modifier of parts.slice(0, -1)) {
     const normalized = modifier.toLowerCase();
-    if (normalized === 'command' || normalized === 'cmd') {
+    if (normalized === 'command' || normalized === 'cmd' || normalized === 'meta') {
       modifiers.push('Command');
       continue;
     }
@@ -461,6 +461,7 @@ function decodeRaycastHotkey(value: unknown): string | null {
       modifiers.push('Fn');
       continue;
     }
+    return null;
   }
 
   return [...modifiers, key].join('+');

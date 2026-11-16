@@ -47,7 +47,20 @@ function hotkey(value: any): string | undefined {
   const shortcut = record(kind.shortcut);
   const key = record(shortcut.key);
   if (kind.type !== 'SingleStep' || key.type !== 'LayoutIndependent' || !Number.isInteger(key.code)) return undefined;
-  return [...list(shortcut.modifiers).map((item) => item.modifier), key.code].join('-');
+  const names: Record<string, string> = {
+    meta: 'Command', command: 'Command', cmd: 'Command',
+    alt: 'Alt', option: 'Alt', control: 'Control', ctrl: 'Control',
+    shift: 'Shift', fn: 'Fn', function: 'Fn',
+  };
+  const modifiers: string[] = [];
+  if (!Array.isArray(shortcut.modifiers)) return undefined;
+  for (const item of shortcut.modifiers) {
+    const modifier = names[String(typeof item === 'string' ? item : item?.modifier).toLowerCase()];
+    // Never silently weaken a shortcut by dropping an unknown modifier.
+    if (!modifier) return undefined;
+    if (!modifiers.includes(modifier)) modifiers.push(modifier);
+  }
+  return [...modifiers, key.code].join('-');
 }
 
 /** Adapt Raycast 2.x categories to the existing import pipeline. */

@@ -58,3 +58,22 @@ test('v3 category mapping joins extension IDs, preferences and AI messages', () 
   assert.equal(decoded['builtin_package_open-ai'].aiChats[0].messages.length, 1);
   assert.equal(decoded['builtin_package_open-ai'].aiChats[0].messages[0].content, 'Hello');
 });
+
+test('Raycast Meta is preserved as Command in clipboard and other multi-modifier shortcuts', () => {
+  const shortcut = (modifiers, code = 8) => ({ kind: { type: 'SingleStep', shortcut: { modifiers, key: { type: 'LayoutIndependent', code } } } });
+  const decoded = normalizeRaycastBackupV3({ settings: {
+    general: { globalHotkey: shortcut([{ modifier: 'Meta' }, { modifier: 'Alt' }], 49) },
+    commands: [
+      { id: 'clipboard', macosHotkey: shortcut([{ modifier: 'Alt' }, { modifier: 'Meta' }]) },
+      { id: 'shift', macosHotkey: shortcut([{ modifier: 'Meta' }, { modifier: 'Control' }, { modifier: 'Shift' }]) },
+      { id: 'strings', macosHotkey: shortcut(['Meta', 'Alt']) },
+      { id: 'unknown', macosHotkey: shortcut([{ modifier: 'Alt' }, { modifier: 'FutureModifier' }]) },
+    ],
+  } });
+  assert.equal(decoded.builtin_package_raycastPreferences.preferencesGeneral.raycastGlobalHotkey, 'Command-Alt-49');
+  const entries = decoded.builtin_package_rootSearch.rootSearch;
+  assert.equal(entries[0].hotkey, 'Alt-Command-8');
+  assert.equal(entries[1].hotkey, 'Command-Control-Shift-8');
+  assert.equal(entries[2].hotkey, 'Command-Alt-8');
+  assert.equal(entries[3].hotkey, undefined);
+});
