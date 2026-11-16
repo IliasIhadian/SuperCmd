@@ -67,6 +67,7 @@ type RaycastRootSearchRecord = {
   path?: string;
   hotkey?: string;
   searchTerms?: string;
+  alias?: string;
 };
 
 type RaycastPinnedMenuItem = {
@@ -207,6 +208,9 @@ const RAYCAST_SCRIPT_COMMAND_PREFIX = 'raycastScript_';
 const importSessions = new Map<string, { filePath: string; backup: RaycastBackup }>();
 
 const RAYCAST_BUILTIN_COMMAND_ID_MAP: Record<string, string> = {
+  'c:r:clipboard-history::-::history': 'system-clipboard-manager',
+  'c:r:emoji-picker::-::searchEmoji': 'system-emoji-picker',
+  'c:r:file-search::-::searchFiles': 'system-search-files',
   builtin_command_clipboardHistory: 'system-clipboard-manager',
   builtin_command_createScriptCommand: 'system-create-script-command',
   builtin_command_developer_manageExtensions: 'system-open-extensions-settings',
@@ -594,7 +598,7 @@ function countPreviewStats(data: RaycastBackup): RaycastImportPreview['counts'] 
       ), 0),
     scriptCommandFolders: data.builtin_package_scriptCommands?.scriptCommandsDirectories?.length || 0,
     commandHotkeys: rootSearchItems.filter((item) => Boolean(String(item?.hotkey || '').trim())).length,
-    commandAliases: rootSearchItems.filter((item) => Boolean(normalizeAliasCandidate(item?.searchTerms))).length,
+    commandAliases: rootSearchItems.filter((item) => Boolean(item.alias?.trim() || normalizeAliasCandidate(item?.searchTerms))).length,
     pinnedCommands: data.builtin_package_navigation?.pinnedMenuItems?.length || 0,
     aiChats: data['builtin_package_open-ai']?.aiChats?.length || 0,
     quicklinks: data.builtin_package_quicklinks?.quicklinks?.length || 0,
@@ -1059,7 +1063,7 @@ async function importCommandCustomizations(
 
   for (const item of rootSearchItems) {
     const hasHotkey = options.includeHotkeys && Boolean(String(item?.hotkey || '').trim());
-    const hasSearchTerms = options.includeAliases && Boolean(String(item?.searchTerms || '').trim());
+    const hasSearchTerms = options.includeAliases && Boolean(String(item?.alias || item?.searchTerms || '').trim());
     if (!hasHotkey && !hasSearchTerms) continue;
 
     const commandId = resolveRaycastCommandId(item, appCommandIdByPath, scriptCommandIdByPath);
@@ -1086,7 +1090,7 @@ async function importCommandCustomizations(
     }
 
     if (hasSearchTerms) {
-      const aliasCandidate = normalizeAliasCandidate(item.searchTerms);
+      const aliasCandidate = item.alias?.trim() || normalizeAliasCandidate(item.searchTerms);
       if (!aliasCandidate) continue;
       const existingAlias = String(nextAliases[commandId] || '').trim();
       if (!existingAlias) {

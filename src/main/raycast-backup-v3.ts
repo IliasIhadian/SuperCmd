@@ -68,10 +68,7 @@ export function normalizeRaycastBackupV3(data: RecordValue, appVersion?: string)
     // Unknown built-in IDs remain visible as unmapped instead of being guessed.
     return { key: id };
   };
-  const rootSearch = commands.map((item) => ({ ...commandKey(String(item.id || '')), hotkey: hotkey(item.macosHotkey), searchTerms: item.alias }));
-  for (const item of list(settings.frecency)) {
-    if (item.searchTerms) rootSearch.push({ ...commandKey(String(item.itemId || '')), hotkey: undefined, searchTerms: item.searchTerms });
-  }
+  const rootSearch = commands.map((item) => ({ ...commandKey(String(item.id || '')), hotkey: hotkey(item.macosHotkey), alias: item.alias }));
   const ai = record(data.ai);
   const messages = list(ai.messages);
   return {

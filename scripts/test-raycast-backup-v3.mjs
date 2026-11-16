@@ -42,7 +42,7 @@ test('v3 category mapping joins extension IDs, preferences and AI messages', () 
     nodeExtensions: { extensions: [{ uuid: 'ext1', name: 'sample', author: 'author' }] },
     settings: { general: { globalHotkey: { kind: { type: 'SingleStep', shortcut: { modifiers: [{ modifier: 'Alt' }], key: { type: 'LayoutIndependent', code: 49 } } } } },
       nodeExtensions: [{ id: 'e:n:ext1', meta: { language: 'de' }, preferenceTypes: [{ name: 'language', type: 'textfield' }] }],
-      commands: [{ id: 'c:n:ext1::-::index', extensionId: 'e:n:ext1', enabled: false, alias: 'test' }],
+      commands: [{ id: 'c:n:ext1::-::index', extensionId: 'e:n:ext1', enabled: false, alias: 't' }, { id: 'c:r:applications::*::application::=::/Applications/Example.app' }],
       frecency: [{ itemId: 'c:r:applications::*::application::=::/Applications/Example.app', searchTerms: 'example' }] },
     ai: { chats: [{ id: 'chat1', title: 'Chat' }], messages: [{ chatId: 'chat1', role: 'user', content: { text: 'Hello' } }, { chatId: 'chat1', role: 'tool', content: { arguments: { secret: 'exclude' } } }] },
     snippets: { snippets: [{ title: 'Snippet', text: 'Text' }] }, notes: { notes: [{ text: 'Note' }] },
@@ -50,6 +50,8 @@ test('v3 category mapping joins extension IDs, preferences and AI messages', () 
   assert.equal(decoded.builtin_package_raycastPreferences.preferencesGeneral.raycastGlobalHotkey, 'Alt-49');
   assert.equal(decoded.builtin_package_rootSearch.rootSearch[0].key, 'extension_sample.index');
   assert.equal(decoded.builtin_package_rootSearch.rootSearch[1].path, '/Applications/Example.app');
+  assert.equal(decoded.builtin_package_rootSearch.rootSearch[0].alias, 't');
+  assert.equal(decoded.builtin_package_rootSearch.rootSearch.length, 2, 'search history must not become aliases');
   assert.equal(decoded.builtin_package_raycastExtensions.extensions[0].commands[0].enabled, false);
   assert.equal(decoded.builtin_package_raycastExtensions.extensions[0].prefs[0].value, 'de');
   assert.equal(decoded.builtin_package_snippets.snippets[0].name, 'Snippet');
